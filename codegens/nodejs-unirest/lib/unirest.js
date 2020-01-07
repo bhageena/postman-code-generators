@@ -14,9 +14,10 @@ var _ = require('./lodash'),
  * @returns {String} - nodejs(unirest) code snippet for given request object
  */
 function makeSnippet (request, indentString, options) {
-  var snippet = 'var unirest = require(\'unirest\');\n';
+  var snippet = 'const unirest = require(\'unirest\');\n';
 
-  snippet += `var req = unirest('${request.method}', '${sanitize(request.url.toString())}')\n`;
+  snippet += 'const main = (args) => {\n\n';
+  snippet += `let req = unirest('${request.method}', '${sanitize(request.url.toString())}')\n`;
   if (request.body && !request.headers.has('Content-Type')) {
     if (request.body.mode === 'file') {
       request.addHeader({
@@ -90,7 +91,8 @@ function makeSnippet (request, indentString, options) {
   snippet += indentString.repeat(2) + 'if (res.error) throw new Error(res.error); \n';
   snippet += indentString.repeat(2) + 'console.log(res.raw_body);\n';
   snippet += indentString + '});\n';
-
+  snippet += '};\n\n';
+  snippet += '\n\n exports.main = main;';
   return snippet;
 }
 

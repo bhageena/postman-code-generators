@@ -13,7 +13,7 @@ var _ = require('./lodash'),
  * @returns {String} - nodejs(request) code snippet for given request object
  */
 function makeSnippet (request, indentString, options) {
-  var snippet = 'var request = require(\'request\');\n',
+  var snippet = 'const request = require(\'request\');\n',
     optionsArray = [],
     isFormDataFile = false;
   if (request.body && request.body.mode === 'formdata') {
@@ -24,9 +24,9 @@ function makeSnippet (request, indentString, options) {
     });
   }
   if (isFormDataFile) {
-    snippet += 'var fs = require(\'fs\');\n';
+    snippet += 'const fs = require(\'fs\');\n';
   }
-  snippet += 'var options = {\n';
+  snippet += 'const options = {\n';
 
   /**
      * creating string to represent options object using optionArray.join()
@@ -69,11 +69,13 @@ function makeSnippet (request, indentString, options) {
   }
   snippet += optionsArray.join(',\n') + '\n';
   snippet += '};\n';
-
+  snippet += 'const main = (args) => {\n\n';
   snippet += 'request(options, function (error, response) { \n';
   snippet += indentString + 'if (error) throw new Error(error);\n';
   snippet += indentString + 'console.log(response.body);\n';
   snippet += '});\n';
+  snippet += '};\n\n';
+  snippet += '\n\n exports.main = main;';
   return snippet;
 }
 

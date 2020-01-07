@@ -15,19 +15,19 @@ var self;
  */
 function makeSnippet (request, indentString, options) {
   var nativeModule = (request.url.protocol === 'http' ? 'http' : 'https'),
-    snippet = `var ${nativeModule} = require('${nativeModule}');\n`,
+    snippet = `const ${nativeModule} = require('${nativeModule}');\n`,
     optionsArray = [],
     postData = '';
 
   if (options.followRedirect) {
-    snippet = `var ${nativeModule} = require('follow-redirects').${nativeModule};\n`;
+    snippet = `const ${nativeModule} = require('follow-redirects').${nativeModule};\n`;
   }
-  snippet += 'var fs = require(\'fs\');\n\n';
+  snippet += 'const fs = require(\'fs\');\n\n';
   if (_.get(request, 'body.mode') && request.body.mode === 'urlencoded') {
-    snippet += 'var qs = require(\'querystring\');\n\n';
+    snippet += 'const qs = require(\'querystring\');\n\n';
   }
 
-  snippet += 'var options = {\n';
+  snippet += 'const options = {\n';
 
   /**
      * creating string to represent options object using optionArray.join()
@@ -117,16 +117,16 @@ function makeSnippet (request, indentString, options) {
 
   snippet += optionsArray.join(',\n') + '\n';
   snippet += '};\n\n';
+  snippet += 'const main = (args) => {\n\n';
+  snippet += `let req = ${nativeModule}.request(options, function (res) {\n`;
 
-  snippet += `var req = ${nativeModule}.request(options, function (res) {\n`;
-
-  snippet += indentString + 'var chunks = [];\n\n';
+  snippet += indentString + 'let chunks = [];\n\n';
   snippet += indentString + 'res.on("data", function (chunk) {\n';
   snippet += indentString.repeat(2) + 'chunks.push(chunk);\n';
   snippet += indentString + '});\n\n';
 
   snippet += indentString + 'res.on("end", function (chunk) {\n';
-  snippet += indentString.repeat(2) + 'var body = Buffer.concat(chunks);\n';
+  snippet += indentString.repeat(2) + 'let body = Buffer.concat(chunks);\n';
   snippet += indentString.repeat(2) + 'console.log(body.toString());\n';
   snippet += indentString + '});\n\n';
 
@@ -137,7 +137,7 @@ function makeSnippet (request, indentString, options) {
   snippet += '});\n\n';
 
   if (request.body && !(_.isEmpty(request.body)) && postData.length) {
-    snippet += `var postData = ${postData};\n\n`;
+    snippet += `let postData = ${postData};\n\n`;
 
     if (request.method === 'DELETE') {
       snippet += 'req.setHeader(\'Content-Length\', postData.length);\n\n';
@@ -158,6 +158,8 @@ function makeSnippet (request, indentString, options) {
   }
 
   snippet += 'req.end();';
+  snippet += '\n};\n\n';
+  snippet += '\n\n exports.main = main;';
   return snippet;
 }
 
